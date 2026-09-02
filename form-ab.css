@@ -46,7 +46,10 @@
   background:#FFD900;border-color:#FFD900;color:#0a1628;
   box-shadow:0 4px 14px rgba(255,217,0,.35);font-weight:700;
 }
-.lf-opt input:checked+span::before{content:'\2713';font-weight:800;margin-right:8px}
+/* O check fica só no selo circular à direita (::after, definido no <style>
+   inline de cada página). Não adicionar um "✓" antes do texto — vira check
+   duplicado nos radio-cards de serviço. */
+.lf-opt input:checked+span::before{content:none}
 .lf-opt input:focus-visible+span{border-color:#154CC4;outline:2px solid #154CC4;outline-offset:1px}
 
 /* radio-card "rico" (serviço — título + descrição). Só define o que
