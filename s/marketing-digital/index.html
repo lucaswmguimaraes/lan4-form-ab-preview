@@ -754,11 +754,11 @@
               <div class="lf-group" role="radiogroup" aria-label="Faturamento médio mensal">
                 <label class="lf-sublabel">Faturamento médio mensal*</label>
                 <div class="lf-options">
-                  <label class="lf-opt"><input type="radio" name="faturamento" value="Até 100k"><span>Menos de R$ 100 mil/mês</span></label>
-                  <label class="lf-opt"><input type="radio" name="faturamento" value="100 - 300k"><span>R$ 100 a 300 mil</span></label>
-                  <label class="lf-opt"><input type="radio" name="faturamento" value="300k - 1M"><span>R$ 300 mil a 1 milhão</span></label>
-                  <label class="lf-opt"><input type="radio" name="faturamento" value="Acima de 1M"><span>Acima de R$ 1 milhão</span></label>
-                  <label class="lf-opt"><input type="radio" name="faturamento" value="Não faturo"><span>Ainda não faturo</span></label>
+                  <label class="lf-opt"><input type="radio" name="faturamento" value="Até 100k"><span>Até 100k</span></label>
+                  <label class="lf-opt"><input type="radio" name="faturamento" value="100 - 300k"><span>100 - 300k</span></label>
+                  <label class="lf-opt"><input type="radio" name="faturamento" value="300k - 1M"><span>300k - 1M</span></label>
+                  <label class="lf-opt"><input type="radio" name="faturamento" value="Acima de 1M"><span>Acima de 1M</span></label>
+                  <label class="lf-opt"><input type="radio" name="faturamento" value="Não faturo"><span>Não faturo</span></label>
                 </div>
               </div>
               <div class="lf-group" role="radiogroup" aria-label="Qual o seu cargo">
@@ -807,7 +807,7 @@
               </div>
             </fieldset>
 
-            <fieldset class="lf-step" data-fv="A" data-step-name="marketing" data-step-title="Sobre seu marketing"
+            <fieldset class="lf-step" data-fv="A" data-step-name="marketing" data-step-title="Sobre seu marketing" data-no-autoadvance
                       data-req="marketing_hoje:Como sua empresa faz marketing hoje,objetivo_marketing:Principal objetivo com o marketing">
               <div class="lf-group" role="radiogroup" aria-label="Como sua empresa faz marketing hoje?" data-rd-cf="cf_como_faz_marketing_hoje" data-rd-name="marketing_hoje">
                 <span class="lf-label">Como sua empresa faz marketing hoje?*</span>
@@ -842,11 +842,11 @@
               <div class="lf-group" role="radiogroup" aria-label="Faturamento médio mensal">
                 <label class="lf-sublabel">Faturamento médio mensal*</label>
                 <div class="lf-options">
-                  <label class="lf-opt"><input type="radio" name="faturamento" value="Até 100k"><span>Menos de R$ 100 mil/mês</span></label>
-                  <label class="lf-opt"><input type="radio" name="faturamento" value="100 - 300k"><span>R$ 100 a 300 mil</span></label>
-                  <label class="lf-opt"><input type="radio" name="faturamento" value="300k - 1M"><span>R$ 300 mil a 1 milhão</span></label>
-                  <label class="lf-opt"><input type="radio" name="faturamento" value="Acima de 1M"><span>Acima de R$ 1 milhão</span></label>
-                  <label class="lf-opt"><input type="radio" name="faturamento" value="Não faturo"><span>Ainda não faturo</span></label>
+                  <label class="lf-opt"><input type="radio" name="faturamento" value="Até 100k"><span>Até 100k</span></label>
+                  <label class="lf-opt"><input type="radio" name="faturamento" value="100 - 300k"><span>100 - 300k</span></label>
+                  <label class="lf-opt"><input type="radio" name="faturamento" value="300k - 1M"><span>300k - 1M</span></label>
+                  <label class="lf-opt"><input type="radio" name="faturamento" value="Acima de 1M"><span>Acima de 1M</span></label>
+                  <label class="lf-opt"><input type="radio" name="faturamento" value="Não faturo"><span>Não faturo</span></label>
                 </div>
               </div>
               <div class="lf-group" role="radiogroup" aria-label="Qual o seu cargo">
@@ -860,6 +860,9 @@
                 </div>
               </div>
               <div class="lf-step-msg" role="alert"></div>
+              <div class="lf-nav">
+                <button type="button" class="lf-btn lf-next">Continuar</button>
+              </div>
             </fieldset>
 
             <fieldset class="lf-step" data-fv="B" data-step-name="contato"
@@ -880,7 +883,7 @@
               <div class="lf-row">
                 <div class="lf-group">
                   <label for="lfb-tel">WhatsApp com DDD*</label>
-                  <input id="lfb-tel" name="telefone" type="tel" inputmode="numeric" autocomplete="tel-national" enterkeyhint="done" placeholder="11998765432">
+                  <input id="lfb-tel" name="telefone" type="tel" inputmode="numeric" autocomplete="tel-national" enterkeyhint="next" placeholder="11998765432">
                   <span class="lf-field-hint">Usamos seu WhatsApp só para retornar este contato.</span>
                 </div>
               </div>
@@ -889,6 +892,10 @@
                 <span>Falta só duas perguntas sobre seu marketing.</span>
               </div>
               <div class="lf-step-msg" role="alert"></div>
+              <div class="lf-nav">
+                <button type="button" class="lf-back">Voltar</button>
+                <button type="button" class="lf-btn lf-next">Continuar</button>
+              </div>
             </fieldset>
 
             <fieldset class="lf-step" data-fv="B" data-step-name="marketing" data-no-autoadvance

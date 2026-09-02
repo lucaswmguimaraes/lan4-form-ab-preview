@@ -3362,16 +3362,41 @@ main, .header { position: relative; z-index: 1; }
 .lf-msg .lf-msg-agenda-embed {
   width: 100%;
   max-width: 680px;
-  min-height: 600px;
-  border-radius: 12px;
+  min-height: 640px;
+  border-radius: 14px;
   overflow: hidden;
   background: #fff;
+  box-shadow: 0 8px 30px rgba(0,0,0,.28);
 }
 .lf-msg .lf-msg-agenda-embed iframe {
   display: block;
   width: 100%;
-  min-height: 600px;
+  min-height: 640px;
   border: 0;
+}
+
+/* Mobile: a grade de horários do Google empilha na vertical e fica alta —
+   dar mais altura, encostar o embed nas bordas do card (usar a largura
+   toda) e reduzir o arredondamento pra não cortar o conteúdo do iframe. */
+@media (max-width: 560px) {
+  .lf-msg .lf-msg-agenda {
+    margin-left: -18px;
+    margin-right: -18px;
+    width: calc(100% + 36px);
+  }
+  .lf-msg .lf-msg-agenda-embed {
+    max-width: none;
+    min-height: 760px;
+    border-radius: 10px;
+  }
+  .lf-msg .lf-msg-agenda-embed iframe {
+    min-height: 760px;
+  }
+  .lf-msg .lf-msg-agenda-title,
+  .lf-msg .lf-msg-title-agenda {
+    padding-left: 18px;
+    padding-right: 18px;
+  }
 }
 .lf-msg .lf-msg-agenda-btn {
   display: inline-flex;

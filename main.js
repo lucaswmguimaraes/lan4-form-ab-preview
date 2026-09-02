@@ -1247,7 +1247,7 @@ $$('[data-popup-open]').forEach(btn => {
              convidado), não daqui. */
           + '<div class="lf-msg-agenda">'
           + '  <div class="lf-msg-agenda-embed" data-lf-agenda-embed>'
-          + '    <iframe title="Agenda do Tiago — escolher horário" loading="lazy" src="https://calendar.google.com/calendar/appointments/schedules/AcZssZ1Cqf4Jfj6tHo_vxnPDmXYZURdeMIC_9bw2_hUWWJnxueKHO8cIEM3C7GAIe1FV4MW57ulrpyV5?gv=true" style="border:0" width="100%" height="600" frameborder="0"></iframe>'
+          + '    <iframe title="Agenda do Tiago — escolher horário" loading="lazy" src="https://calendar.google.com/calendar/appointments/schedules/AcZssZ1Cqf4Jfj6tHo_vxnPDmXYZURdeMIC_9bw2_hUWWJnxueKHO8cIEM3C7GAIe1FV4MW57ulrpyV5?gv=true" style="border:0" width="100%" height="760" frameborder="0"></iframe>'
           + '  </div>'
           + '  <noscript><a class="lf-msg-agenda-btn" href="https://calendar.app.google/wJ6hmHugSuTyYm8HA" target="_blank" rel="noopener">Escolher horário com o Tiago</a></noscript>'
           + '</div>';
