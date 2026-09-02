@@ -630,19 +630,13 @@
 
             <!-- Engine hoje (Variante A) = 1 etapa só (contato por último) →
                  a conversão dispara no submit final (trigger GTM 117,
-                 lead_form_submit + form_identifier=lan4-lp-engine).
-                 Na Variante B o Engine quebra em 3 etapas E a etapa "contato"
-                 passa a acionar o lead_partial_submit (decisão do Lucas:
-                 Engine também ganha lead parcial na B).
-                 GTM (import Mesclar) — adicionar:
-                   • trigger  "CE — lead_partial_submit (Engine)"
-                     = _event == lead_partial_submit
-                       AND {{DL - form_identifier}} == lan4-lp-engine
-                   • tag GAds "Conversão Lead Parcial (Engine, via lead_partial_submit)"
-                   • tag Meta "Lead (Engine, via lead_partial_submit)"
-                 Em Variante A esse trigger nunca dispara (contato é a última
-                 etapa, não há transição de saída) → inofensivo. Em B dispara
-                 1× ao sair da etapa contato. -->
+                 lead_form_submit + form_identifier=lan4-lp-engine → tags 118/119).
+                 Na Variante B o Engine quebra em 3 etapas, MAS a etapa "contato"
+                 leva [data-no-partial]: o main.js NÃO dispara lead_partial_submit
+                 ali. Assim o Engine mantém EXATAMENTE o tracking de hoje nas duas
+                 variantes (conversão só no submit final) — ZERO mudança de GTM.
+                 A Variante B do Engine testa só se quebrar em etapas ajuda a
+                 conclusão, sem tocar no que Google/Meta recebem. -->
 
             <!-- ══ progresso · B ══ -->
             <div class="lf-progress" data-fv-progress="B">
@@ -744,7 +738,7 @@
               </div>
             </fieldset>
 
-            <fieldset class="lf-step" data-fv="B" data-step-name="contato"
+            <fieldset class="lf-step" data-fv="B" data-step-name="contato" data-no-partial
                       data-step-title="Como retornamos seu contato"
                       data-req="nome:Nome,email:Email,telefone:Telefone">
               <p class="lf-step-hint">Falta pouco. Usamos só para retornar este contato.</p>
