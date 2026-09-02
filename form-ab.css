@@ -20,8 +20,12 @@
    As páginas já trazem .lf-options no <style> inline; aqui é só fallback. */
 .lf-options{display:grid;gap:8px}
 /* rótulo de faturamento à esquerda no card (não centralizado) fica mais
-   escaneável quando são 5 faixas empilhadas */
-.lf-group[role="radiogroup"] .lf-options .lf-opt span{justify-content:flex-start;text-align:left;padding-left:16px}
+   escaneável quando são 5 faixas empilhadas; card mais baixo que o padrão
+   de 48px do bloco de serviço (que tem 2 linhas título+descrição) */
+.lf-group[role="radiogroup"] .lf-options .lf-opt span{
+  justify-content:flex-start;text-align:left;padding-left:16px;
+  min-height:44px;padding-top:12px;padding-bottom:12px;
+}
 
 /* radio-card genérico (faturamento/cargo) */
 .lf-opt{position:relative;display:block;cursor:pointer;margin-bottom:0}
