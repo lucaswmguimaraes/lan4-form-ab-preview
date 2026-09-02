@@ -3375,29 +3375,29 @@ main, .header { position: relative; z-index: 1; }
   border: 0;
 }
 
-/* Mobile: a grade de horários do Google empilha na vertical e fica alta.
-   Reduzir o padding lateral do card de sucesso e "sangrar" o embed até as
-   bordas do card, pra a grade do Google usar toda a largura da tela. */
+/* Mobile: a grade de horários do Google empilha na vertical e fica alta,
+   e o card de sucesso tem ~74px de padding lateral somado (lf-msg +
+   lf-wrap + container). "Sangrar" o embed até as bordas da TELA com o
+   truque de full-bleed por viewport, pra a grade do Google respirar. */
 @media (max-width: 560px) {
   .lf-msg {
-    padding-left: 14px;
-    padding-right: 14px;
+    padding-left: 12px;
+    padding-right: 12px;
   }
   .lf-msg .lf-msg-agenda {
-    margin-left: -14px;
-    margin-right: -14px;
-    width: calc(100% + 28px);
     gap: 10px;
   }
   .lf-msg .lf-msg-agenda-embed {
-    max-width: none;
-    width: 100%;
-    min-height: 780px;
-    border-radius: 8px;
-    box-shadow: 0 4px 18px rgba(0,0,0,.22);
+    width: 100vw;
+    max-width: 100vw;
+    margin-left: calc(50% - 50vw);
+    margin-right: calc(50% - 50vw);
+    min-height: 820px;
+    border-radius: 0;
+    box-shadow: 0 -1px 0 rgba(0,0,0,.08);
   }
   .lf-msg .lf-msg-agenda-embed iframe {
-    min-height: 780px;
+    min-height: 820px;
   }
 }
 .lf-msg .lf-msg-agenda-btn {
