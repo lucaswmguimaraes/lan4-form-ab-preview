@@ -974,20 +974,14 @@
         <div class="lf-wrap reveal" style="--reveal-delay:.12s">
           <form id="lf" novalidate data-rd-id="lan4-contato-site">
 
-            <!-- ══════════════════════════════════════════════════════════════
-                 RODADA 2 — teste B vs C vs D (Variante A removida: perdeu a rodada 1).
-                   B = qualificação → contato → serviço      (vencedor provisório)
-                   C = serviço → qualificação → contato      (antagônica "serviço primeiro")
-                   D = 1 etapa corrida, tudo visível         (antagônica "sem etapas")
-                 Melhorias de UX nas 3: radio-card faturamento/cargo, typo-check de
-                 e-mail, máscara de telefone (form-ab.js), subtítulo de expectativa,
-                 CTA "Enviar e falar com a LAN4". Empresa OBRIGATÓRIA nas 3.
-                 form-ab.js poda os data-fv das variantes não sorteadas e dispara o
-                 lead_partial_submit em C/D ao validar nome+email+telefone (menos
-                 páginas Engine/Diagnóstico — essas só convertem no envio completo).
-            ══════════════════════════════════════════════════════════════ -->
-
-            <!-- ══ barra de progresso · B ══ -->
+            <!-- ══ barra de progresso · Variante A (2 etapas) ══ -->
+<!-- ══ barra de progresso · Variante B (3 etapas) ══ -->
+<!-- ════════════════════════════════════════════════════════════
+                 VARIANTE A — qualificação + contato numa etapa (como hoje),
+                 MAS com as melhorias de UX P1: radio-cards no lugar dos
+                 selects, microcopy revisada, validação de typo de e-mail.
+            ════════════════════════════════════════════════════════════ -->
+            <!-- RODADA 2 — B vs C vs D (A removida) -->
             <div class="lf-progress" data-fv-progress="B">
               <div class="lf-progress-meta">
                 <span class="lf-progress-count">Etapa <b data-step-current>1</b> de 3</span>
@@ -997,8 +991,6 @@
                 <span class="lf-progress-seg is-active"></span><span class="lf-progress-seg"></span><span class="lf-progress-seg"></span>
               </div>
             </div>
-
-            <!-- ══ barra de progresso · C ══ -->
             <div class="lf-progress" data-fv-progress="C">
               <div class="lf-progress-meta">
                 <span class="lf-progress-count">Etapa <b data-step-current>1</b> de 3</span>
@@ -1008,16 +1000,13 @@
                 <span class="lf-progress-seg is-active"></span><span class="lf-progress-seg"></span><span class="lf-progress-seg"></span>
               </div>
             </div>
-            <!-- D não tem barra de progresso (1 etapa) -->
 
-            <!-- ════════════════════ VARIANTE C ════════════════════ -->
-
-            <!-- C · Etapa 1 — SERVIÇO (manual "Continuar": múltipla escolha) -->
+            <!-- ═══ VARIANTE C — serviço → qualificação → contato ═══ -->
             <fieldset class="lf-step is-active" data-fv="C" data-step-name="servico"
                       data-step-title="Qual serviço você precisa?" data-no-autoadvance
                       data-req="servico_interesse:Serviço de interesse">
               <div class="lf-group" role="group" aria-label="Qual serviço você precisa?">
-                <p class="lf-step-hint">Pode marcar mais de um. É o que direciona seu contato para o time certo.</p>
+                <p class="lf-step-hint">Pode marcar mais de um serviço.</p>
                 <div class="lf-options radio-card-group">
                   <label class="lf-opt radio-card"><input type="checkbox" name="servico_interesse" value="Engine"><span><strong>Engine (Solução 360°)</strong><small>Todos os serviços numa única operação integrada.</small></span></label>
                   <label class="lf-opt radio-card"><input type="checkbox" name="servico_interesse" value="Vendas e CRM"><span><strong>Vendas e CRM</strong><small>Time de SDRs e closers dedicado, da prospecção ao fechamento.</small></span></label>
@@ -1029,15 +1018,9 @@
                   <label class="lf-opt radio-card"><input type="checkbox" name="servico_interesse" value="Recrutamento e Seleção"><span><strong>Recrutamento e Seleção</strong><small>Atração e seleção de talentos para sua operação comercial.</small></span></label>
                 </div>
               </div>
-              <div class="lf-next-hint" role="note">
-                <span class="lf-next-hint-icon" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/></svg></span>
-                <span>Mais duas perguntas rápidas e seus dados de contato.</span>
-              </div>
               <div class="lf-step-msg" role="alert"></div>
               <div class="lf-nav"><button type="button" class="lf-btn lf-next">Continuar</button></div>
             </fieldset>
-
-            <!-- C · Etapa 2 — QUALIFICAÇÃO (autoavanço, 2 toques) -->
             <fieldset class="lf-step" data-fv="C" data-step-name="qualificacao"
                       data-step-title="Sobre a sua empresa"
                       data-req="faturamento:Faturamento médio mensal,cargo:Cargo">
@@ -1065,23 +1048,29 @@
               <div class="lf-step-msg" role="alert"></div>
               <div class="lf-nav"><button type="button" class="lf-back">Voltar</button><button type="button" class="lf-btn lf-next">Continuar</button></div>
             </fieldset>
-
-            <!-- C · Etapa 3 — CONTATO + empresa + LGPD (manual "Enviar"; parcial via form-ab.js) -->
             <fieldset class="lf-step" data-fv="C" data-step-name="contato"
                       data-step-title="Como retornamos seu contato" data-no-autoadvance
                       data-req="nome:Nome,email:Email,telefone:Telefone,empresa:Empresa,lgpd_consent:Autorização de contato (LGPD)">
               <p class="lf-step-hint">Falta pouco. Respondemos pelo WhatsApp em até 1 dia útil.</p>
               <div class="lf-row">
-                <div class="lf-group"><label for="lfc-nome">Nome*</label>
-                  <input id="lfc-nome" name="nome" type="text" autocomplete="name" enterkeyhint="next" placeholder="Seu nome completo"></div>
-                <div class="lf-group"><label for="lfc-email">Seu melhor e-mail*</label>
+                <div class="lf-group">
+                  <label for="lfc-nome">Nome*</label>
+                  <input id="lfc-nome" name="nome" type="text" autocomplete="name" enterkeyhint="next" placeholder="Seu nome completo">
+                </div>
+                <div class="lf-group">
+                  <label for="lfc-email">Seu melhor e-mail*</label>
                   <input id="lfc-email" name="email" type="email" inputmode="email" autocomplete="email" enterkeyhint="next" placeholder="voce@suaempresa.com.br">
-                  <span class="lf-field-hint lf-email-typo" hidden></span></div>
+                  <span class="lf-field-hint lf-email-typo" hidden></span>
+                </div>
               </div>
               <div class="lf-row">
-                <div class="lf-group"><label for="lfc-tel">WhatsApp com DDD*</label>
+                <div class="lf-group">
+                  <label for="lfc-tel">WhatsApp com DDD*</label>
                   <input id="lfc-tel" name="telefone" type="tel" inputmode="numeric" autocomplete="tel-national" enterkeyhint="next" placeholder="11998765432">
-                  <span class="lf-field-hint">Usamos seu WhatsApp só para retornar este contato.</span></div>
+                  <span class="lf-field-hint">Usamos seu WhatsApp só para retornar este contato.</span>
+                </div>
+              </div>
+              <div class="lf-row">
                 <div class="lf-group"><label for="lfc-empresa">Empresa*</label>
                   <input id="lfc-empresa" name="empresa" type="text" autocomplete="organization" enterkeyhint="done" placeholder="Nome da empresa"></div>
               </div>
@@ -1089,6 +1078,7 @@
                 <input type="checkbox" name="lgpd_consent">
                 <span>Autorizo a LAN4 a entrar em contato, conforme a <a href="/politica-de-privacidade/" target="_blank" rel="noopener">política de privacidade</a>.</span>
               </label>
+
               <div class="lf-step-msg" role="alert"></div>
               <div class="lf-nav">
                 <button type="button" class="lf-back">Voltar</button>
@@ -1096,13 +1086,12 @@
               </div>
             </fieldset>
 
-            <!-- ════════════════════ VARIANTE D — form corrido, 1 etapa ════════════════════ -->
+            <!-- ═══ VARIANTE D — form corrido, 1 etapa ═══ -->
             <fieldset class="lf-step is-active" data-fv="D" data-step-name="contato" data-no-autoadvance
                       data-req="servico_interesse:Serviço de interesse,faturamento:Faturamento médio mensal,cargo:Cargo,nome:Nome,email:Email,telefone:Telefone,empresa:Empresa,lgpd_consent:Autorização de contato (LGPD)">
               <p class="lf-step-hint">Preencha em 1 minuto. Respondemos pelo WhatsApp em até 1 dia útil.</p>
-
               <div class="lf-group" role="group" aria-label="Qual serviço você precisa?">
-                <label class="lf-sublabel">Qual serviço você precisa?* <span style="font-weight:400;opacity:.7">(pode marcar mais de um)</span></label>
+                <p class="lf-step-hint">Pode marcar mais de um serviço.</p>
                 <div class="lf-options radio-card-group">
                   <label class="lf-opt radio-card"><input type="checkbox" name="servico_interesse" value="Engine"><span><strong>Engine (Solução 360°)</strong><small>Todos os serviços numa única operação integrada.</small></span></label>
                   <label class="lf-opt radio-card"><input type="checkbox" name="servico_interesse" value="Vendas e CRM"><span><strong>Vendas e CRM</strong><small>Time de SDRs e closers dedicado, da prospecção ao fechamento.</small></span></label>
@@ -1135,22 +1124,30 @@
                   <label class="lf-opt"><input type="radio" name="cargo" value="Outro"><span>Outro</span></label>
                 </div>
               </div>
-
+              
               <div class="lf-row">
-                <div class="lf-group"><label for="lfd-nome">Nome*</label>
-                  <input id="lfd-nome" name="nome" type="text" autocomplete="name" enterkeyhint="next" placeholder="Seu nome completo"></div>
-                <div class="lf-group"><label for="lfd-email">Seu melhor e-mail*</label>
+                <div class="lf-group">
+                  <label for="lfd-nome">Nome*</label>
+                  <input id="lfd-nome" name="nome" type="text" autocomplete="name" enterkeyhint="next" placeholder="Seu nome completo">
+                </div>
+                <div class="lf-group">
+                  <label for="lfd-email">Seu melhor e-mail*</label>
                   <input id="lfd-email" name="email" type="email" inputmode="email" autocomplete="email" enterkeyhint="next" placeholder="voce@suaempresa.com.br">
-                  <span class="lf-field-hint lf-email-typo" hidden></span></div>
+                  <span class="lf-field-hint lf-email-typo" hidden></span>
+                </div>
               </div>
               <div class="lf-row">
-                <div class="lf-group"><label for="lfd-tel">WhatsApp com DDD*</label>
+                <div class="lf-group">
+                  <label for="lfd-tel">WhatsApp com DDD*</label>
                   <input id="lfd-tel" name="telefone" type="tel" inputmode="numeric" autocomplete="tel-national" enterkeyhint="next" placeholder="11998765432">
-                  <span class="lf-field-hint">Usamos seu WhatsApp só para retornar este contato.</span></div>
+                  <span class="lf-field-hint">Usamos seu WhatsApp só para retornar este contato.</span>
+                </div>
+              </div>
+              
+              <div class="lf-row">
                 <div class="lf-group"><label for="lfd-empresa">Empresa*</label>
                   <input id="lfd-empresa" name="empresa" type="text" autocomplete="organization" enterkeyhint="done" placeholder="Nome da empresa"></div>
               </div>
-
               <label class="lf-consent">
                 <input type="checkbox" name="lgpd_consent">
                 <span>Autorizo a LAN4 a entrar em contato, conforme a <a href="/politica-de-privacidade/" target="_blank" rel="noopener">política de privacidade</a>.</span>
@@ -1159,8 +1156,7 @@
               <div class="lf-nav"><button type="submit" class="lf-btn">Enviar e falar com a LAN4</button></div>
             </fieldset>
 
-            <!-- ════════════════════ VARIANTE B (vencedor provisório) ════════════════════ -->
-
+            <!-- ═══ VARIANTE B — vencedor provisório ═══ -->
             <fieldset class="lf-step is-active" data-fv="B" data-step-name="qualificacao"
                       data-step-title="Sobre a sua empresa"
                       data-req="faturamento:Faturamento médio mensal,cargo:Cargo">
@@ -1190,7 +1186,6 @@
                 <button type="button" class="lf-btn lf-next">Continuar</button>
               </div>
             </fieldset>
-
             <fieldset class="lf-step" data-fv="B" data-step-name="contato"
                       data-step-title="Como retornamos seu contato"
                       data-req="nome:Nome,email:Email,telefone:Telefone">
@@ -1223,7 +1218,6 @@
                 <button type="button" class="lf-btn lf-next">Continuar</button>
               </div>
             </fieldset>
-
             <fieldset class="lf-step" data-fv="B" data-step-name="servico"
                       data-step-title="Qual serviço você precisa?" data-no-autoadvance
                       data-req="servico_interesse:Serviço de interesse,empresa:Empresa,lgpd_consent:Autorização de contato (LGPD)">
@@ -1254,6 +1248,18 @@
                 <button type="submit" class="lf-btn">Enviar e falar com a LAN4</button>
               </div>
             </fieldset>
+
+            <!-- ════════════════════════════════════════════════════════════
+                 VARIANTE B — 3 micro-etapas (qualificação → contato → serviço).
+                 Etapas 1 e 2: autoavanço AO preencher + botões Voltar/Continuar
+                 como alternativa (o main.js liga os dois em paralelo).
+                 O lead_partial_submit dispara ao SAIR da etapa "contato" (2) —
+                 equivale à saída da 1ª etapa do formulário A de hoje.
+                 Etapa 3: SEM autoavanço (data-no-autoadvance) — múltipla escolha
+                 de serviço + opt-in, envio só no clique em "Enviar".
+            ════════════════════════════════════════════════════════════ -->
+
+            
 
             <div class="lf-msg" id="lf-msg"></div>
 
