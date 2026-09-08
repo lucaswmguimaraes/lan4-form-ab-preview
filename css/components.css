@@ -2521,7 +2521,10 @@ main, .header { position: relative; z-index: 1; }
   border-radius: 9px;
   color: #1a1f2c;
   padding: 12px 16px;
-  font-size: 15px;
+  /* 16px (não 15) para o Safari/iOS NÃO dar zoom automático ao focar o
+     campo — abaixo de 16px o iOS amplia a página, quebrando o layout do
+     formulário no mobile. A diferença visual no desktop é imperceptível. */
+  font-size: 16px;
   font-family: 'CreatoDisplay', sans-serif;
   outline: none;
   transition: border-color 180ms var(--ease-out), background 180ms var(--ease-out);
