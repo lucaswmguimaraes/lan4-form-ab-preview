@@ -256,33 +256,45 @@
     }, true);
   })();
 
-  /* ── Máscara visual de telefone no blur — PURAMENTE COSMÉTICA ──────────
-     Mostra "(11) 99999-9999" ao sair do campo, só para o usuário. O que
-     chega ao RD Station e às plataformas de anúncio NÃO muda: main.js
-     normaliza o telefone com lan4PhoneDigits() (RD, Meta, Google Ads) e
-     valida com lan4ValidaTelefone() — as duas funções já removem qualquer
-     caractere não-numérico antes de usar o valor (ver patch aplicado no
-     main.js para o validador). Então a máscara pode ficar no .value sem
-     risco: submit, autoavanço de etapa, payload do RD e hashing Meta/Google
-     recebem exatamente os mesmos dígitos de hoje (DDD + 9, com DDI 55
-     acrescentado onde já era). Ao focar de volta, tiramos a máscara para
-     facilitar a edição. */
+  /* ── Máscara de telefone — formata ENQUANTO digita, PURAMENTE COSMÉTICA ─
+     O usuário digita corrido (placeholder "(11) 99999-9999") e o campo vai
+     virando "(11) 99999-9999" a cada tecla — boa prática: a pessoa confere
+     o número de bater o olho. O que chega ao RD Station e às plataformas
+     NÃO muda: main.js normaliza com lan4PhoneDigits() (RD, Meta, Google) e
+     valida com lan4ValidaTelefone() — as duas já removem qualquer caractere
+     não-numérico antes de usar o valor (ver patch no main.js do validador).
+     Então a máscara pode ficar no .value sem risco: submit, autoavanço de
+     etapa, payload do RD e hashing Meta/Google recebem os mesmos dígitos de
+     hoje (DDD + 9, com DDI 55 acrescentado onde já era). */
   (function () {
+    function formata(d) {
+      d = d.replace(/\D/g, '').slice(0, 11);
+      if (d.length <= 2)  return d.length ? '(' + d : '';
+      if (d.length <= 6)  return '(' + d.slice(0, 2) + ') ' + d.slice(2);
+      if (d.length <= 10) return '(' + d.slice(0, 2) + ') ' + d.slice(2, 6) + '-' + d.slice(6);
+      return '(' + d.slice(0, 2) + ') ' + d.slice(2, 7) + '-' + d.slice(7);
+    }
+    function aplica(el) {
+      if (!el || el.name !== 'telefone') return;
+      var antesLen = el.value.length;
+      var caret = el.selectionStart;
+      var novo = formata(el.value);
+      if (novo === el.value) return;
+      el.value = novo;
+      /* reposiciona o cursor de forma aproximada quando editando no meio */
+      if (caret != null && caret < antesLen) {
+        var delta = novo.length - antesLen;
+        try { el.setSelectionRange(caret + delta, caret + delta); } catch (e) {}
+      }
+    }
+    document.addEventListener('input', function (e) { aplica(e.target); }, true);
+    /* blur: se ficou incompleto (< 10 dígitos), volta a só dígitos pra não
+       deixar um "(11) 9" solto atrapalhando; senão mantém formatado */
     document.addEventListener('blur', function (e) {
       var el = e.target;
       if (!el || el.name !== 'telefone' || !el.value) return;
-      var d = el.value.replace(/\D/g, '').slice(0, 11);
-      if (d.length < 10) return;
-      var fmt = d.length === 11
-        ? '(' + d.slice(0, 2) + ') ' + d.slice(2, 7) + '-' + d.slice(7)
-        : '(' + d.slice(0, 2) + ') ' + d.slice(2, 6) + '-' + d.slice(6);
-      el.value = fmt;
-    }, true);
-    document.addEventListener('focus', function (e) {
-      var el = e.target;
-      if (el && el.name === 'telefone' && el.value) {
-        el.value = el.value.replace(/\D/g, '');
-      }
+      if (el.value.replace(/\D/g, '').length < 10) el.value = el.value.replace(/\D/g, '');
+      else aplica(el);
     }, true);
   })();
 
