@@ -154,27 +154,42 @@
       if (form.lan4ContatoParcialEnviado) return;
       var nome = val(form, 'nome');
       var email = val(form, 'email');
-      var tel = val(form, 'telefone');
+      var tel = val(form, 'telefone').replace(/\D/g, ''); // tira máscara antes de repassar ao main.js/GTM
       if (!nome || !emailOk(email) || !telOk(tel)) return;
 
       form.lan4ContatoParcialEnviado = true;
       var rdId = form.getAttribute('data-rd-id') || 'lan4-contato-site';
 
-      /* mesmas funções do main.js — se existirem, usa; senão, empurra o
-         evento no dataLayer para o GTM (trigger 109) do mesmo jeito. */
-      try {
-        if (typeof window.lan4EnviaContatoParcial === 'function') {
-          window.lan4EnviaContatoParcial(form, rdId);
-        }
-      } catch (e) {}
-      try {
-        if (typeof window.lan4PushLead === 'function') {
+      /* O evento lead_partial_submit tem 3 tags no GTM (trigger 109):
+           81  Meta Pixel Lead  → precisa de user_data (advanced matching + eventID)
+           110 GA4 generate_lead → precisa de form_identifier + event_id
+           112 GAds Conv. Parcial (Enhanced Conversions) → precisa de user_data
+         Então NÃO empurramos um evento "cru": usamos lan4PushLead, que monta
+         user_data (email/phone/first/last) + event_id igual ao B. Passamos o
+         telefone JÁ SEM MÁSCARA (tratado acima).
+
+         Mas NÃO chamamos lan4EnviaContatoParcial (o POST parcial ao RD):
+           1) em C/D a etapa `contato` é a última/única — o submit completo,
+              a um clique de distância, já cria o card com TODOS os campos.
+           2) lan4EnviaContatoParcial() passa por lan4EnviaRd(), que grava
+              `lan4_ultimo_envio` e liga o rate-limit de 4s. Se o usuário
+              concluir em < 4s (comum, mesma tela), lan4PareceBot() bloquearia
+              SILENCIOSAMENTE o POST final ao RD → card sem qualificação.
+           3) lan4EnviaContatoParcial() ainda empurra seu PRÓPRIO
+              lead_partial_submit no sucesso → duplicaria o evento.
+         B não tem nada disso: lá o parcial dispara ao SAIR da etapa `contato`,
+         segundos antes do submit, e o POST parcial ao RD faz sentido (safety
+         net de quem abandona no meio). */
+      if (typeof window.lan4PushLead === 'function') {
+        try {
           window.lan4PushLead(rdId + '-parcial',
             { nome: nome, email: email, telefone: tel }, 'lead_partial_submit');
           return;
-        }
-      } catch (e) {}
-      /* fallback: evento cru no dataLayer (mantém o contrato do GTM) */
+        } catch (e) {}
+      }
+      /* fallback se o main.js ainda não carregou (ordem de script garante que
+         carregou, mas defensivo): evento mínimo — mantém o funil no GA4 (tag
+         110), Meta/GAds parcial ficam sem matching nesse caso raro. */
       window.dataLayer.push({
         event: 'lead_partial_submit',
         form_identifier: rdId,
@@ -185,6 +200,12 @@
     function bind() {
       var forms = document.querySelectorAll('form#lf, form[data-rd-id]');
       for (var i = 0; i < forms.length; i++) {
+        /* Respeita o mesmo contrato do main.js: se a etapa `contato` estiver
+           marcada com [data-no-partial] (Engine — otimiza só no submit final,
+           trigger GTM 117, sem trigger de lead_partial_submit), NÃO dispara o
+           parcial em C/D. Sem isso, o form-ab.js empurraria um lead_partial_submit
+           órfão (sem tag) no DebugView do Engine. */
+        if (forms[i].querySelector('[data-step-name="contato"][data-no-partial]')) continue;
         (function (form) {
           ['blur', 'change'].forEach(function (evt) {
             form.addEventListener(evt, function (e) {
@@ -235,7 +256,17 @@
     }, true);
   })();
 
-  /* ── Máscara visual de telefone no blur (só display; value numérico ao RD) ── */
+  /* ── Máscara visual de telefone no blur — PURAMENTE COSMÉTICA ──────────
+     Mostra "(11) 99999-9999" ao sair do campo, só para o usuário. O que
+     chega ao RD Station e às plataformas de anúncio NÃO muda: main.js
+     normaliza o telefone com lan4PhoneDigits() (RD, Meta, Google Ads) e
+     valida com lan4ValidaTelefone() — as duas funções já removem qualquer
+     caractere não-numérico antes de usar o valor (ver patch aplicado no
+     main.js para o validador). Então a máscara pode ficar no .value sem
+     risco: submit, autoavanço de etapa, payload do RD e hashing Meta/Google
+     recebem exatamente os mesmos dígitos de hoje (DDD + 9, com DDI 55
+     acrescentado onde já era). Ao focar de volta, tiramos a máscara para
+     facilitar a edição. */
   (function () {
     document.addEventListener('blur', function (e) {
       var el = e.target;
@@ -247,7 +278,6 @@
         : '(' + d.slice(0, 2) + ') ' + d.slice(2, 6) + '-' + d.slice(6);
       el.value = fmt;
     }, true);
-    /* ao focar de volta, tira a máscara para não atrapalhar a edição */
     document.addEventListener('focus', function (e) {
       var el = e.target;
       if (el && el.name === 'telefone' && el.value) {

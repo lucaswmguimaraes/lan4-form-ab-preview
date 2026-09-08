@@ -15,6 +15,29 @@ const $$ = (sel, ctx = document) => [...ctx.querySelectorAll(sel)];
    enviar (Enhanced Conversions / Advanced Matching). */
 window.dataLayer = window.dataLayer || [];
 
+/* ─── Código de monitoramento RD Station (Path B, 2026-09-03) ───────────
+   Rastreador nativo do RD — grava o cookie __trf.src e faz a atribuição
+   de origem do lead (orgânico/direto/referral/paga), que a API de
+   conversão sozinha não cobre quando não há UTM na URL. Só carrega em
+   produção (fora do modo prévia).
+
+   >>> AÇÃO NECESSÁRIA: substituir LAN4_RD_LOADER_ID pelo ID da conta.
+   RD Station Marketing → Configurações → Código de monitoramento →
+   "Copiar código". O src é do tipo:
+   https://d335luupugsy2.cloudfront.net/js/loader-scripts/<UUID>-loader.js
+   Cole só o <UUID> abaixo. Enquanto estiver 'COLE-O-ID-DA-CONTA-AQUI'
+   o script não carrega (no-op seguro). */
+var LAN4_RD_LOADER_ID = 'c6fb78de-10d6-4e17-8ad6-85f5e6ba1008';
+if (!window.LAN4_PREVIEW && LAN4_RD_LOADER_ID && LAN4_RD_LOADER_ID.indexOf('COLE-O-ID') === -1) {
+  (function () {
+    var s = document.createElement('script');
+    s.type = 'text/javascript';
+    s.async = true;
+    s.src = 'https://d335luupugsy2.cloudfront.net/js/loader-scripts/' + LAN4_RD_LOADER_ID + '-loader.js';
+    (document.head || document.body).appendChild(s);
+  })();
+}
+
 function lan4EventId() {
   return (window.crypto && crypto.randomUUID)
     ? crypto.randomUUID()
@@ -171,6 +194,42 @@ function lan4GetUtms() {
   catch (e) { return {}; }
 }
 
+/* Referrer da PRIMEIRA página da sessão → sessionStorage (capturado na
+   entrada; no submit document.referrer já seria a própria página). Último
+   fallback de origem quando não há UTM nem cookie __trf.src — ex.: lead
+   do modal de WhatsApp com clique rápido antes do rastreador do RD gravar
+   o cookie. */
+(function () {
+  try {
+    if (sessionStorage.getItem('lan4_ref') === null) {
+      sessionStorage.setItem('lan4_ref', document.referrer || '');
+    }
+  } catch (e) { /* sessionStorage indisponível */ }
+})();
+
+/* Deriva {source, medium} de um referrer, vocabulário alinhado ao RD
+   (o medium decide a categoria "Origem"):
+   busca → organic · redes → social · outro domínio → referral ·
+   sem referrer / mesmo domínio → null (não anexa nada). */
+function lan4RefOrigem(ref) {
+  if (!ref) return null;
+  var host;
+  try { host = new URL(ref).hostname.replace(/^www\./, '').toLowerCase(); }
+  catch (e) { return null; }
+  if (!host || host === location.hostname.replace(/^www\./, '').toLowerCase()) return null;
+  var SEARCH = /(^|\.)(google|bing|yahoo|duckduckgo|ecosia|yandex)\./;
+  var SOCIAL = /(^|\.)(instagram|facebook|fb|l\.facebook|lm\.facebook|linkedin|lnkd|youtube|youtu\.be|tiktok|t\.co|twitter|x|pinterest|reddit|threads)\.?/;
+  if (SEARCH.test(host)) return { source: host.split('.').slice(-2, -1)[0] || host, medium: 'organic' };
+  if (SOCIAL.test(host)) {
+    var name = host.split('.').slice(-2, -1)[0] || host;
+    if (name === 'fb' || host.indexOf('facebook') > -1) name = 'facebook';
+    if (host === 't.co' || name === 'x') name = 'twitter';
+    if (host.indexOf('youtube') > -1) name = 'youtube';
+    return { source: name, medium: 'social' };
+  }
+  return { source: host, medium: 'referral' };
+}
+
 function lan4ServicoInteresse(utms) {
   var mapa = {
     vendas: 'Vendas e CRM', social: 'Gestão de Redes Sociais',
@@ -186,10 +245,45 @@ function lan4ServicoInteresse(utms) {
   return utms.utm_term || utms.utm_content || '';
 }
 
+/* Cookie __trf.src — gravado pelo código de monitoramento nativo do RD
+   (Path B). É a fonte de verdade de atribuição do RD (cobre orgânico/
+   direto/referral, não só quando há UTM). Se presente, mandamos ele em
+   traffic_source e o RD resolve "Origem"/"Fonte" a partir dele. */
+function lan4TrfSrc() {
+  try {
+    var m = document.cookie.match(/(?:^|;\s*)__trf\.src=([^;]+)/);
+    return m ? decodeURIComponent(m[1]) : '';
+  } catch (e) { return ''; }
+}
+
+/* Monta os campos de atribuição (traffic_*) para a API de conversão v2 do
+   RD — é ISSO que popula os campos nativos "Origem" e "Fonte" no card do
+   lead (a API v1.3 antiga ignorava traffic_source; só os cf_utm_* apareciam,
+   sem virar atribuição). Os cf_utm_* continuam indo em paralelo como
+   histórico/fallback. Regra da LAN4 mantida: só anexa origem se houver
+   dado real (UTM na URL de entrada OU cookie __trf.src do rastreador RD) —
+   nunca inventa origem de mídia paga. */
 function lan4RdUtmPayload() {
   var u = lan4GetUtms();
+  var trf = lan4TrfSrc();
   var p = {};
-  if (u.utm_source)   { p.traffic_source = u.utm_source; p.cf_utm_source = u.utm_source; }
+  /* Prioridade de atribuição:
+     1. cookie __trf.src (rastreador nativo do RD — mais completo)
+     2. UTMs da URL de entrada
+     3. referrer da 1ª página (só source+medium derivados) */
+  if (trf) {
+    p.traffic_source = trf;
+  } else if (u.utm_source) {
+    p.traffic_source   = u.utm_source;
+    if (u.utm_medium)   p.traffic_medium   = u.utm_medium;
+    if (u.utm_campaign) p.traffic_campaign = u.utm_campaign;
+    if (u.utm_term)     p.traffic_value    = u.utm_term;
+  } else {
+    var ref = lan4RefOrigem(sessionStorage.getItem('lan4_ref'));
+    if (ref) { p.traffic_source = ref.source; p.traffic_medium = ref.medium; }
+  }
+  /* cf_utm_* — histórico/fallback, texto livre no card (já funcionavam) */
+  if (u.utm_source)   p.cf_utm_source   = u.utm_source;
   if (u.utm_medium)   p.cf_utm_medium   = u.utm_medium;
   if (u.utm_campaign) p.cf_utm_campaign = u.utm_campaign;
   if (u.utm_term)     p.cf_utm_term     = u.utm_term;
@@ -209,9 +303,17 @@ function lan4RdUtmPayload() {
 }
 
 /* ─── Validação de telefone (11 dígitos corridos: DDD + celular) ──────
-   Retorna '' se válido, ou a mensagem de erro explicando o que corrigir. */
+   Retorna '' se válido, ou a mensagem de erro explicando o que corrigir.
+
+   A máscara VISUAL de telefone do form-ab.js (rodada 2 do teste A/B) deixa
+   "(11) 99999-9999" no campo. Esses caracteres de formatação — ( ) espaço
+   - . — são tolerados aqui (removidos em silêncio antes de validar), do
+   mesmo jeito que lan4PhoneDigits() já faz para o RD/Meta/Google. Qualquer
+   OUTRO caractere não-numérico (letra, símbolo digitado à mão) continua
+   sendo erro explícito. Assim o formulário não trava por causa da máscara,
+   e o que chega ao RD/plataformas segue idêntico (só dígitos). */
 function lan4ValidaTelefone(raw) {
-  var val = (raw || '').trim();
+  var val = (raw || '').trim().replace(/[()\s.\-]/g, '');
   if (!val) return 'Preencha o telefone (ex.: 11998765432).';
   var invalidos = val.replace(/[0-9]/g, '');
   if (invalidos) {
@@ -277,9 +379,12 @@ function lan4ReqDoForm(form) {
 }
 
 /* Identificador de conversão do RD por form: declarado em data-rd-id no <form>
-   (páginas de serviço usam identificadores próprios, ex.: lan4-lp-redes-sociais) */
+   (páginas de serviço usam identificadores próprios, ex.: lan4-lp-redes-sociais).
+   NUNCA cair em form.id: um form com id="lf" servido de cache antigo (sem o
+   atributo data-rd-id) chegou a criar no RD um evento "lf" — identificador
+   degradado. O pior caso agora é sempre 'lan4-contato-site', não o id do DOM. */
 function lan4FormId(form, fallback) {
-  return form.getAttribute('data-rd-id') || fallback || form.id || 'form-sem-id';
+  return form.getAttribute('data-rd-id') || fallback || 'lan4-contato-site';
 }
 
 /* Campos extras específicos da página: grupos com data-rd-cf="cf_x" data-rd-name="name"
@@ -592,10 +697,78 @@ function lan4SetupAutoAdvance(form, steps) {
   if (lf) lan4MultiStep(lf, lan4FormId(lf, 'lan4-contato-site'));
 })();
 
-/* ─── Envio ao RD Station — com modo prévia ─────────────────────────────
+/* ─── Envio ao RD Station — API de conversão v2, com modo prévia ────────
    Fora de lan4.com.br (window.LAN4_PREVIEW, definido no index.html) o
-   POST não acontece: simula sucesso p/ validar a UX sem criar lead. */
+   POST não acontece: simula sucesso p/ validar a UX sem criar lead.
+
+   MIGRAÇÃO 2026-09-03 (v1.3 → v2): a API 1.3 (app.rdstation.com.br/api/
+   1.3/conversions) NÃO usava traffic_source para popular os campos nativos
+   "Origem"/"Fonte" do card — só os cf_utm_* apareciam (texto livre, sem
+   virar atribuição). A API v2 (api.rd.services/platform/conversions, com
+   envelope event_type/event_family=CDP) resolve "Origem"/"Fonte" a partir
+   de traffic_source/traffic_medium/traffic_campaign/traffic_value —
+   equivalente a session_source/session_medium do GA4.
+
+   Esta função recebe o MESMO payload no formato antigo (token_rdstation +
+   identificador + email + campos cf_ e traffic_) usado por todos os call
+   sites e converte para o envelope v2 aqui, sem mexer nas chamadas. */
+/* Proxy serverless (Vercel) que guarda a API Key do RD como env var, nunca
+   exposta ao navegador — ver cerebro/clientes/lan4/tracking/rd-proxy/.
+   Antes disso (até 2026-09-04) a chave ia direta no fetch do client, visível
+   pra qualquer um no DevTools/aba Network; qualquer pessoa podia copiar e
+   criar leads falsos ilimitados na conta do RD sem nem passar pelo form. */
+var LAN4_RD_PROXY_URL = 'https://rd-proxy-delta.vercel.app/api/conversion';
+
+function lan4RdV2Envelope(payload) {
+  var p = Object.assign({}, payload);
+  var identificador = p.identificador || p.conversion_identifier;
+  delete p.identificador;
+  delete p.token_rdstation;
+  delete p.conversion_identifier;
+  p.conversion_identifier = identificador;
+  /* v1.3 usava 'nome'; a v2 espera 'name' */
+  if (p.nome != null && p.name == null) { p.name = p.nome; }
+  delete p.nome;
+  /* remove chaves vazias — a v2 é mais estrita e pode rejeitar '' em
+     campos como mobile_phone/name */
+  Object.keys(p).forEach(function (k) {
+    if (p[k] === '' || p[k] == null) delete p[k];
+  });
+  return { event_type: 'CONVERSION', event_family: 'CDP', payload: p };
+}
+
+/* ─── Proteção anti-bot (honeypot + tempo mínimo + rate-limit) ──────────
+   Nenhuma delas bloqueia usuário real: honeypot é campo invisível
+   (name="website_hp", ver CSS/HTML dos forms) que só bot/autofill agressivo
+   preenche; tempo mínimo cobre o caso de scripts que já chegam com o form
+   pronto e submetem em <1.5s (impossível digitar nome+email+telefone+
+   empresa nesse tempo); rate-limit no sessionStorage trava rajada de
+   conversões da mesma aba/sessão (visto na prática: 9 conversões do
+   "David"/"lf" em 30s). Checado 1x aqui, ponto único por onde todo envio
+   passa — não precisa duplicar em cada form. Falha SEMPRE silenciosa pro
+   chamador (retorna Promise resolvida como se tivesse ido), pra nunca
+   travar a UX nem entrar no fluxo de erro visível ao usuário. */
+var LAN4_MARCA_CARREGAMENTO = Date.now();
+var LAN4_TEMPO_MINIMO_MS = 1500;
+var LAN4_RATE_LIMIT_MS = 4000;
+
+function lan4PareceBot() {
+  var hp = document.querySelector('[name="website_hp"]');
+  if (hp && (hp.value || '').trim()) return true; // honeypot preenchido
+  if (Date.now() - LAN4_MARCA_CARREGAMENTO < LAN4_TEMPO_MINIMO_MS) return true;
+  try {
+    var ultimo = Number(sessionStorage.getItem('lan4_ultimo_envio') || 0);
+    if (Date.now() - ultimo < LAN4_RATE_LIMIT_MS) return true;
+    sessionStorage.setItem('lan4_ultimo_envio', String(Date.now()));
+  } catch (e) { /* sessionStorage indisponível: não bloqueia por isso */ }
+  return false;
+}
+
 function lan4EnviaRd(payload) {
+  if (lan4PareceBot()) {
+    console.warn('[RD Station] envio bloqueado (padrão de bot):', payload.identificador || payload.conversion_identifier);
+    return Promise.resolve({ ok: true, status: 200, json: function () { return Promise.resolve({ blocked: true }); } });
+  }
   if (window.LAN4_PREVIEW) {
     return new Promise(function (res) {
       setTimeout(function () {
@@ -603,10 +776,10 @@ function lan4EnviaRd(payload) {
       }, 500);
     });
   }
-  return fetch('https://app.rdstation.com.br/api/1.3/conversions', {
+  return fetch(LAN4_RD_PROXY_URL, {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify(payload)
+    body: JSON.stringify(lan4RdV2Envelope(payload))
   });
 }
 
@@ -627,7 +800,7 @@ function lan4EnviaContatoParcial(form, identificadorForm) {
   var lead = { nome: v('nome'), email: v('email'), telefone: v('telefone'), empresa: v('empresa') };
   if (!lead.email) return; // etapa já validada antes de chamar, mas defensivo: sem e-mail não há o que casar no RD
   lan4EnviaRd(Object.assign({
-    token_rdstation: 'd5d170dfe71825a3ebc37e6699f10652',
+    token_rdstation: 'proxied',
     identificador:   identificadorForm + '-parcial',
     email:           lead.email,
     nome:            lead.nome,
@@ -1206,7 +1379,7 @@ $$('[data-popup-open]').forEach(btn => {
     if (lead.servico) extrasPayload.cf_servico_de_interesse = lead.servico;
 
     lan4EnviaRd(Object.assign({
-      token_rdstation:              'd5d170dfe71825a3ebc37e6699f10652',
+      token_rdstation:              'proxied',
       identificador:                identificador,
       email:                        lead.email,
       nome:                         lead.nome,
@@ -1524,7 +1697,7 @@ const revealObserver = new IntersectionObserver((entries) => {
       var extrasPayload = Object.assign({ cf_servico_de_interesse: lead.servico, site: lead.site }, lan4RdUtmPayload());
 
       lan4EnviaRd(Object.assign({
-        token_rdstation: 'd5d170dfe71825a3ebc37e6699f10652',
+        token_rdstation: 'proxied',
         identificador: LAN4_WHATSAPP_IDENTIFICADOR,
         email: lead.email,
         nome: lead.nome,
@@ -1867,7 +2040,7 @@ $$('video[data-lazy-autoplay]').forEach(function (video) {
       var extrasPayload = Object.assign({ cf_servico_de_interesse: lead.servico, site: lead.site }, lan4RdUtmPayload());
 
       lan4EnviaRd(Object.assign({
-        token_rdstation: 'd5d170dfe71825a3ebc37e6699f10652',
+        token_rdstation: 'proxied',
         identificador: LAN4_ISCA_IDENTIFICADOR,
         email: lead.email,
         nome: lead.nome,
