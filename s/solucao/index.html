@@ -21,7 +21,12 @@
   <title>LAN4 | Hub de Crescimento de Receita B2B</title>
   <meta name="description" content="Sua receita depende de uma pessoa, um canal ou um mês bom? A LAN4 monta a estrutura que tira sua empresa dessa dependência.">
   <meta name="robots" content="noindex,nofollow">
-  <script>window.LAN4_SERVICO_PAGINA = 'Engine';</script>
+  <!-- LAN4_SERVICO_PAGINA removido em 2026-09-08: no teste A/B/C/D esta página usa
+       os 8 checkboxes genéricos de serviço (igual à home). Forçar 'Engine' como
+       fallback fazia o cf_servico_de_interesse vir 'Engine' no lead PARCIAL (que
+       dispara no contato, antes da etapa de serviço) e em qualquer lead que não
+       marcasse serviço — falso positivo. Agora: serviço vem só do que a pessoa
+       marca; se não marcar, vem vazio (SDR pergunta). -->
 
   <link rel="icon" type="image/svg+xml" href="../../img/4.svg" />
 
@@ -172,6 +177,14 @@
 </head>
 
 <body>
+
+  <!-- Honeypot anti-bot (main.js lê via querySelector global) — invisível
+       pra humano (fora da viewport, não display:none), mas bots simples
+       preenchem todo campo que encontram. Qualquer valor aqui bloqueia o
+       envio ao RD silenciosamente (ver lan4PareceBot em main.js). -->
+  <input type="text" name="website_hp" tabindex="-1" autocomplete="off"
+    style="position:absolute;left:-9999px;top:-9999px;width:1px;height:1px;opacity:0;" aria-hidden="true">
+
 
   <!-- Google Tag Manager (noscript) -->
   <noscript><iframe src="https://www.googletagmanager.com/ns.html?id=GTM-KK94LW4M"
@@ -404,11 +417,9 @@
               <div class="lf-row">
                 <div class="lf-group">
                   <label for="lfc-tel">WhatsApp com DDD*</label>
-                  <input id="lfc-tel" name="telefone" type="tel" inputmode="numeric" autocomplete="tel-national" enterkeyhint="next" placeholder="11998765432">
+                  <input id="lfc-tel" name="telefone" type="tel" inputmode="numeric" autocomplete="tel-national" enterkeyhint="next" placeholder="(11) 99999-9999">
                   <span class="lf-field-hint">Usamos seu WhatsApp só para retornar este contato.</span>
                 </div>
-              </div>
-              <div class="lf-row">
                 <div class="lf-group"><label for="lfc-empresa">Empresa*</label>
                   <input id="lfc-empresa" name="empresa" type="text" autocomplete="organization" enterkeyhint="done" placeholder="Nome da empresa"></div>
               </div>
@@ -477,7 +488,7 @@
               <div class="lf-row">
                 <div class="lf-group">
                   <label for="lfd-tel">WhatsApp com DDD*</label>
-                  <input id="lfd-tel" name="telefone" type="tel" inputmode="numeric" autocomplete="tel-national" enterkeyhint="next" placeholder="11998765432">
+                  <input id="lfd-tel" name="telefone" type="tel" inputmode="numeric" autocomplete="tel-national" enterkeyhint="next" placeholder="(11) 99999-9999">
                   <span class="lf-field-hint">Usamos seu WhatsApp só para retornar este contato.</span>
                 </div>
                 <div class="lf-group"><label for="lfd-empresa">Empresa*</label>
@@ -539,7 +550,7 @@
               <div class="lf-row">
                 <div class="lf-group">
                   <label for="lfb-tel">WhatsApp com DDD*</label>
-                  <input id="lfb-tel" name="telefone" type="tel" inputmode="numeric" autocomplete="tel-national" enterkeyhint="next" placeholder="11998765432">
+                  <input id="lfb-tel" name="telefone" type="tel" inputmode="numeric" autocomplete="tel-national" enterkeyhint="next" placeholder="(11) 99999-9999">
                   <span class="lf-field-hint">Usamos seu WhatsApp só para retornar este contato.</span>
                 </div>
               </div>

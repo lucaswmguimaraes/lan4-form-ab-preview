@@ -22,8 +22,12 @@
   <meta name="description" content="LAN4 — hub de crescimento de receita B2B. Assista e fale com a gente.">
   <!-- Página de teste: nunca indexar -->
   <meta name="robots" content="noindex,nofollow">
-  <!-- Serviço desta página: alimenta cf_servico_de_interesse no RD mesmo sem UTM -->
-  <script>window.LAN4_SERVICO_PAGINA = 'Engine';</script>
+  <!-- LAN4_SERVICO_PAGINA removido em 2026-09-08: no teste A/B/C/D esta página usa
+       os 8 checkboxes genéricos de serviço (igual à home). Forçar 'Engine' como
+       fallback fazia o cf_servico_de_interesse vir 'Engine' no lead PARCIAL (que
+       dispara no contato, antes da etapa de serviço) e em qualquer lead que não
+       marcasse serviço — falso positivo. Agora: serviço vem só do que a pessoa
+       marca; se não marcar, vem vazio (SDR pergunta). -->
 
   <link rel="icon" type="image/svg+xml" href="../../img/4.svg" />
 
@@ -166,6 +170,11 @@
     @keyframes vslUnmutePulse{0%,100%{box-shadow:0 6px 18px rgba(0,0,0,.4),0 0 0 0 rgba(255,217,0,.5)}50%{box-shadow:0 6px 18px rgba(0,0,0,.4),0 0 0 7px rgba(255,217,0,0)}}
     @media (prefers-reduced-motion:reduce){.vsl-unmute-btn{animation:none}}
     @media (max-width:480px){.vsl-unmute-label{display:none}.vsl-unmute-btn{padding:10px}}
+    /* Botão de play — só aparece se o autoplay for suprimido pelo navegador
+       (comum em in-app browsers do Instagram/Facebook, ex.: bateria fraca).
+       display:none por padrão; JS mostra via classe is-paused no player. */
+    .vsl-play-btn{display:none;position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);z-index:3;align-items:center;justify-content:center;width:64px;height:64px;border-radius:50%;border:none;background:rgba(255,217,0,.95);color:#0A1428;cursor:pointer;box-shadow:0 8px 24px rgba(0,0,0,.5)}
+    .vsl-player.is-paused .vsl-play-btn{display:flex}
     .vsl-below{padding:8px 0 56px}
     /* .lf-wrap agora vive dentro de .container (classe nativa do site,
        max-width:80rem) igual à home — mesma largura de form que a home
@@ -178,6 +187,14 @@
 </head>
 
 <body>
+
+  <!-- Honeypot anti-bot (main.js lê via querySelector global) — invisível
+       pra humano (fora da viewport, não display:none), mas bots simples
+       preenchem todo campo que encontram. Qualquer valor aqui bloqueia o
+       envio ao RD silenciosamente (ver lan4PareceBot em main.js). -->
+  <input type="text" name="website_hp" tabindex="-1" autocomplete="off"
+    style="position:absolute;left:-9999px;top:-9999px;width:1px;height:1px;opacity:0;" aria-hidden="true">
+
 
   <!-- Google Tag Manager (noscript) -->
   <noscript><iframe src="https://www.googletagmanager.com/ns.html?id=GTM-KK94LW4M"
@@ -239,6 +256,14 @@
             <svg class="icon-muted" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"/><line x1="23" y1="9" x2="17" y2="15"/><line x1="17" y1="9" x2="23" y2="15"/></svg>
             <svg class="icon-unmuted" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"/><path d="M15.54 8.46a5 5 0 0 1 0 7.07"/><path d="M19.07 4.93a10 10 0 0 1 0 14.14"/></svg>
             <span class="vsl-unmute-label">Ativar som</span>
+          </button>
+          <!-- Some navegadores in-app (Instagram/Facebook) suprimem o autoplay
+               mesmo com muted+playsinline, sem avisar (ex.: bateria fraca).
+               Este botão só aparece via JS quando o vídeo está de fato
+               pausado (classe is-paused no player) — é o único jeito do
+               usuário perceber que precisa tocar pra iniciar. -->
+          <button type="button" class="vsl-play-btn" id="vsl-play-btn" aria-label="Reproduzir vídeo">
+            <svg width="28" height="28" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M8 5v14l11-7z"/></svg>
           </button>
           <div class="vsl-progress-track"><div class="vsl-progress-fill" id="vsl-progress-fill"></div></div>
         </div>
@@ -344,11 +369,9 @@
               <div class="lf-row">
                 <div class="lf-group">
                   <label for="lfc-tel">WhatsApp com DDD*</label>
-                  <input id="lfc-tel" name="telefone" type="tel" inputmode="numeric" autocomplete="tel-national" enterkeyhint="next" placeholder="11998765432">
+                  <input id="lfc-tel" name="telefone" type="tel" inputmode="numeric" autocomplete="tel-national" enterkeyhint="next" placeholder="(11) 99999-9999">
                   <span class="lf-field-hint">Usamos seu WhatsApp só para retornar este contato.</span>
                 </div>
-              </div>
-              <div class="lf-row">
                 <div class="lf-group"><label for="lfc-empresa">Empresa*</label>
                   <input id="lfc-empresa" name="empresa" type="text" autocomplete="organization" enterkeyhint="done" placeholder="Nome da empresa"></div>
               </div>
@@ -417,7 +440,7 @@
               <div class="lf-row">
                 <div class="lf-group">
                   <label for="lfd-tel">WhatsApp com DDD*</label>
-                  <input id="lfd-tel" name="telefone" type="tel" inputmode="numeric" autocomplete="tel-national" enterkeyhint="next" placeholder="11998765432">
+                  <input id="lfd-tel" name="telefone" type="tel" inputmode="numeric" autocomplete="tel-national" enterkeyhint="next" placeholder="(11) 99999-9999">
                   <span class="lf-field-hint">Usamos seu WhatsApp só para retornar este contato.</span>
                 </div>
                 <div class="lf-group"><label for="lfd-empresa">Empresa*</label>
@@ -479,7 +502,7 @@
               <div class="lf-row">
                 <div class="lf-group">
                   <label for="lfb-tel">WhatsApp com DDD*</label>
-                  <input id="lfb-tel" name="telefone" type="tel" inputmode="numeric" autocomplete="tel-national" enterkeyhint="next" placeholder="11998765432">
+                  <input id="lfb-tel" name="telefone" type="tel" inputmode="numeric" autocomplete="tel-national" enterkeyhint="next" placeholder="(11) 99999-9999">
                   <span class="lf-field-hint">Usamos seu WhatsApp só para retornar este contato.</span>
                 </div>
               </div>
@@ -667,8 +690,17 @@
   document.addEventListener('DOMContentLoaded', function () {
     var video = document.getElementById('vsl-video');
     var unmuteBtn = document.getElementById('vsl-unmute-btn');
+    var playBtn = document.getElementById('vsl-play-btn');
     var fill = document.getElementById('vsl-progress-fill');
+    var player = document.getElementById('vsl-player');
     if (!video || !unmuteBtn || !fill) return;
+
+    function atualizaEstadoPausado() {
+      if (player) player.classList.toggle('is-paused', video.paused);
+    }
+    video.addEventListener('play', atualizaEstadoPausado);
+    video.addEventListener('pause', atualizaEstadoPausado);
+    if (playBtn) playBtn.addEventListener('click', function () { tentaPlay(); });
 
     function toggleMute() {
       video.muted = !video.muted;
@@ -684,6 +716,37 @@
       if (!video.duration) return;
       fill.style.width = (video.currentTime / video.duration * 100) + '%';
     });
+
+    /* O atributo autoplay do HTML não garante nada — em Low Power Mode/
+       Low Data Mode do iOS, no navegador embutido do Instagram/Facebook
+       e em conexões lentas logo após o clique no anúncio, o navegador
+       pode silenciosamente recusar o autoplay sem lançar erro nenhum,
+       deixando o vídeo parado no primeiro frame. video.play() explícito
+       tenta de novo assim que o vídeo tem dados suficientes (loadeddata)
+       e, se mesmo assim falhar, qualquer toque do usuário na página
+       (não só no player) tenta novamente — cobre o caso do usuário
+       rolar a página antes do vídeo ter carregado. */
+    function tentaPlay() {
+      var p = video.play();
+      if (p && typeof p.catch === 'function') p.catch(function () {});
+      // play()/pause() nem sempre disparam evento quando a supressão é
+      // silenciosa (sem erro, sem mudança de estado) — checa direto.
+      setTimeout(atualizaEstadoPausado, 50);
+    }
+    tentaPlay();
+    video.addEventListener('loadeddata', tentaPlay);
+    video.addEventListener('canplay', tentaPlay);
+    atualizaEstadoPausado();
+
+    var destravouPorToque = false;
+    function tentaPlayNoToque() {
+      if (destravouPorToque || !video.paused) return;
+      tentaPlay();
+      if (!video.paused) destravouPorToque = true;
+    }
+    document.addEventListener('touchstart', tentaPlayNoToque, { passive: true, once: false });
+    document.addEventListener('scroll', tentaPlayNoToque, { passive: true, once: false });
+    if (player) player.addEventListener('click', tentaPlayNoToque);
   });
   </script>
 
